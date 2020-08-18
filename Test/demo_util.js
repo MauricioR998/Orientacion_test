@@ -72,19 +72,7 @@ function drawKeypoints(keypoints, minConfidence, ctx, scale = 1) {
   }
 }
 
-/**
- * Draw the bounding box of a pose. For example, for a whole person standing
- * in an image, the bounding box will begin at the nose and extend to one of
- * ankles
- */
-function drawBoundingBox(keypoints, ctx) {
-  const boundingBox = posenet.getBoundingBox(keypoints);
 
-  ctx.rect(boundingBox.minX, boundingBox.minY,
-    boundingBox.maxX - boundingBox.minX, boundingBox.maxY - boundingBox.minY);
-
-  ctx.stroke();
-}
 
 /**
  * Converts an arary of pixel data into an ImageData object
@@ -119,18 +107,6 @@ function renderImageToCanvas(image, size, canvas) {
   ctx.drawImage(image, 0, 0);
 }
 
-/**
- * Draw heatmap values, one of the model outputs, on to the canvas
- * Read our blog post for a description of PoseNet's heatmap outputs
- * https://medium.com/tensorflow/real-time-human-pose-estimation-in-the-browser-with-tensorflow-js-7dd0bc881cd5
- */
-function drawHeatMapValues(heatMapValues, outputStride, canvas) {
-  const ctx = canvas.getContext('2d');
-  const radius = 5;
-  const scaledValues = heatMapValues.mul(tf.scalar(outputStride, 'int32'));
-
-  drawPoints(ctx, scaledValues, radius, color);
-}
 
 /**
  * Used by the drawHeatMapValues method to draw heatmap points on to
@@ -152,26 +128,4 @@ function drawPoints(ctx, points, radius, color) {
   }
 }
 
-/**
- * Draw offset vector values, one of the model outputs, on to the canvas
- * Read our blog post for a description of PoseNet's offset vector outputs
- * https://medium.com/tensorflow/real-time-human-pose-estimation-in-the-browser-with-tensorflow-js-7dd0bc881cd5
- */
-function drawOffsetVectors(
-  heatMapValues, offsets, outputStride, scale = 1, ctx) {
-  const offsetPoints = posenet.singlePose.getOffsetPoints(
-    heatMapValues, outputStride, offsets);
 
-  const heatmapData = heatMapValues.buffer().values;
-  const offsetPointsData = offsetPoints.buffer().values;
-
-  for (let i = 0; i < heatmapData.length; i += 2) {
-    const heatmapY = heatmapData[i] * outputStride;
-    const heatmapX = heatmapData[i + 1] * outputStride;
-    const offsetPointY = offsetPointsData[i];
-    const offsetPointX = offsetPointsData[i + 1];
-
-    drawSegment([heatmapY, heatmapX], [offsetPointY, offsetPointX],
-      color, scale, ctx);
-  }
-}
